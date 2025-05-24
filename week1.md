@@ -171,10 +171,201 @@ To apply the Hilbert transform, first band-pass the EEG signal to isolate the fr
 
 
 
-# Power spectral density:
+# Code:
+
+### 1.
+```
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.fft import fft, fftfreq
+from scipy.signal import welch
+
+frequency = 5  # Hz
+sampling_rate = 1000  # Hz
+duration = 2  # seconds
+
+t = np.linspace(0, duration, int(duration * sampling_rate), endpoint=False)
+
+euler_notation = np.exp(1j * 2 * np.pi * frequency * t)
+sine_wave = euler_notation.imag
+
+N = len(t)
+delta_f = sampling_rate / N  # frequency resolution
+
+# FFT
+fft_result = fft(sine_wave)
+frequencies = fftfreq(N, d=1 / sampling_rate)
+
+# Take only the positive frequencies
+positive_freqs = frequencies > 0
+frequencies = frequencies[positive_freqs]
+fft_magnitude = 2 * np.abs(fft_result[positive_freqs]) / N  # Normalize
+power_spectrum = fft_magnitude ** 2  
+manual_psd = power_spectrum / delta_f  # Normalize by bin width to get PSD
+
+welch_freq, welch_psd = welch(sine_wave, fs=sampling_rate, nperseg=256)
+
+plt.figure(figsize=(12, 9))
+
+# Time-domain plot
+plt.subplot(3, 1, 1)
+plt.plot(t, sine_wave)
+plt.title('Sine Wave (Imaginary part of Euler)')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+
+# Manual PSD 
+plt.subplot(3, 1, 2)
+plt.plot(frequencies, manual_psd)
+plt.title('Manual PSD via FFT')
+plt.xlabel('Frequency [Hz]')
+plt.ylabel('PSD [Power/Hz]')
+
+# Welch PSD
+plt.subplot(3, 1, 3)
+plt.plot(welch_freq, welch_psd)
+plt.title('Welch PSD')
+plt.xlabel('Frequency [Hz]')
+plt.ylabel('PSD [Power/Hz]')
+
+plt.tight_layout()
+plt.show()
 
 
+```
+### output_1:
+![image](https://github.com/user-attachments/assets/96676bf2-e31d-4908-b14b-c1dce649b627)
 
+
+### 2.
+```
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.fft import fft, fftfreq
+from scipy.signal import welch
+
+# Signal parameters
+sampling_rate = 1000  # Hz
+duration = 2  # seconds
+t = np.linspace(0, duration, int(duration * sampling_rate), endpoint=False)
+
+# Frequencies of the two sine waves
+freq1 = 5    # Hz
+freq2 = 20   # Hz
+
+
+sine_wave1 = np.exp(1j * 2 * np.pi * freq1 * t).imag
+sine_wave2 = np.exp(1j * 2 * np.pi * freq2 * t).imag
+sine_wave = sine_wave1 + sine_wave2  # Composite signal
+
+N = len(t)
+delta_f = sampling_rate / N
+
+fft_result = fft(sine_wave)
+frequencies = fftfreq(N, d=1 / sampling_rate)
+
+positive_freqs = frequencies > 0
+frequencies = frequencies[positive_freqs]
+fft_magnitude = 2 * np.abs(fft_result[positive_freqs]) / N
+power_spectrum = fft_magnitude ** 2
+manual_psd = power_spectrum / delta_f
+
+welch_freq, welch_psd = welch(sine_wave, fs=sampling_rate, nperseg=256)
+
+plt.figure(figsize=(12, 9))
+
+plt.subplot(3, 1, 1)
+plt.plot(t, sine_wave)
+plt.title('Composite Sine Wave (5 Hz + 20 Hz)')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+
+plt.subplot(3, 1, 2)
+plt.plot(frequencies, manual_psd)
+plt.title('Manual PSD via FFT')
+plt.xlabel('Frequency [Hz]')
+plt.ylabel('PSD [Power/Hz]')
+
+plt.subplot(3, 1, 3)
+plt.plot(welch_freq, welch_psd)
+plt.title('Welch PSD')
+plt.xlabel('Frequency [Hz]')
+plt.ylabel('PSD [Power/Hz]')
+
+plt.tight_layout()
+plt.show()
+
+```
+
+
+### output_2:
+![image](https://github.com/user-attachments/assets/077680e6-17cf-4977-99c3-f3712a51502b)
+
+### 3.
+```
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.fft import fft, fftfreq
+from scipy.signal import welch
+
+frequency = 5  # Hz
+sampling_rate = 1000  # Hz
+duration = 2  # seconds
+
+t = np.linspace(0, duration, int(duration * sampling_rate), endpoint=False)
+
+euler_notation = np.exp(1j * 2 * np.pi * frequency * t)
+sine_wave = euler_notation.imag
+
+N = len(t)
+delta_f = sampling_rate / N  # frequency resolution
+
+
+noise = np.random.normal(0, 7 ,N)  # Additive white Gaussian noise
+sine_wave += noise
+# FFT
+fft_result = fft(sine_wave)
+frequencies = fftfreq(N, d=1 / sampling_rate)
+
+# Take only the positive frequencies
+positive_freqs = frequencies > 0
+frequencies = frequencies[positive_freqs]
+fft_magnitude = 2 * np.abs(fft_result[positive_freqs]) / N  # Normalize
+power_spectrum = fft_magnitude ** 2  
+manual_psd = power_spectrum / delta_f  # Normalize by bin width to get PSD
+
+welch_freq, welch_psd = welch(sine_wave, fs=sampling_rate, nperseg=256)
+
+plt.figure(figsize=(12, 9))
+
+# Time-domain plot
+plt.subplot(3, 1, 1)
+plt.plot(t, sine_wave)
+plt.title('Sine Wave (Imaginary part of Euler)')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+
+# Manual PSD 
+plt.subplot(3, 1, 2)
+plt.plot(frequencies, manual_psd)
+plt.title('Manual PSD via FFT')
+plt.xlabel('Frequency [Hz]')
+plt.ylabel('PSD [Power/Hz]')
+
+# Welch PSD
+plt.subplot(3, 1, 3)
+plt.semilogy(welch_freq, welch_psd)
+plt.title('Welch PSD')
+plt.xlabel('Frequency [Hz]')
+plt.ylabel('PSD [Power/Hz]')
+
+plt.tight_layout()
+plt.show()
+
+```
+
+### output_3 :
+![image](https://github.com/user-attachments/assets/918e71f7-59a0-404b-b1b0-159c80f7f61b)
 
 
   
